@@ -124,30 +124,6 @@ Total balance of R$10000.00 on 2022 was equivalent to US$1891.79
 As it does not exceed US$10,000 you may not need to file a FBAR form on April of 2023.
 ```
 
-## Project Contents
-
-### project.py
-
-(futurelly fbar.py)
-Contains the main logic for the application along with the functions get_exchange_rate, calculate_total_balance_in_USD and get_total_foreign_balance.
-
-### test_project.py
-
-(futurelly test_fbar.py)
-Attempts to run various situations to ensure that all functions are working correctly when given a specific input.
-
-### requirements.txt
-
-Contains all python dependencies to be installed for FBAR calculator to run.
-
-### README.md
-
-This file.
-
-### LICENSE
-
-The MIT license.
-
 ## FBAR rules
 
 The FBAR rules are intricate and can change over time, making it crucial for individuals to remain updated with the latest guidance provided by the US Department of the Treasury. Ignorance of these rules can lead to severe penalties, making it essential to adhere to the guidelines set by the government.
