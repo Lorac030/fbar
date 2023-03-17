@@ -52,7 +52,7 @@ If the total value of your foreign financial accounts in US dollars exceeds $10,
 ### FBAR may be needed
 
 ```
-carol@laptop:~/code/fbar$ python3 project.py
+lorac@laptop:~/code/fbar$ python3 project.py
 -----------------------------
 FBAR Calculator
 -----------------------------
@@ -90,7 +90,7 @@ Please go to https://bsaefiling.fincen.treas.gov/NoRegFBARFiler.html and type al
 ### FBAR may NOT be needed
 
 ```
-carol@laptop:~/code/fbar$ python3 project.py
+lorac@laptop:~/code/fbar$ python3 project.py
 -----------------------------
 FBAR Calculator
 -----------------------------
