@@ -1,6 +1,5 @@
 # FBAR Calculator (Foreign Bank and Financial Accounts Report)
-#### Video Demo:  <URL HERE>
-#### Description:
+## Video Demo: https://www.youtube.com/watch?v=P2TYoUW8WTs
 
 ## Introduction
 
