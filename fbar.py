@@ -22,9 +22,12 @@ def get_exchange_rate(country_name, currency_name, year):
         response = requests.get(url, params=params)
         # from response, gets the json, extracts first element of data, then extracts exchange_rate
         _usd_rate = float(response.json().get('data')[0].get('exchange_rate'))
-    except:
+    except IndexError:
+        print("\nUnfortunatelly this call to Treasury system returned no data. Tipically this combination of Country and Currency is not supported for the year you requested.")
+        sys.exit(1)
+    except Exception as e:
         # prints a message and exits when anything goes wrong with trying to use the API
-        print("Something went wrong with your request, please check input values and try again")
+        print("\nSomething went wrong with your request, please check input values and try again")
         sys.exit(1)
     return _usd_rate
 
@@ -90,7 +93,7 @@ def main():
     # gets symbol of currency from user
     currency_symbol = input("Currency Symbol for that country (like R$): ") or "R$"
     # validates if symbol has 1 letter at least
-    validate_input(currency_symbol,r"\w+")
+    validate_input(currency_symbol,r".+")
 
     # gets dollar value for requested parameters (Dec 31st for the year)
     usd_rate = get_exchange_rate(country_name, currency_name, year)
