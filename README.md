@@ -27,10 +27,11 @@ Finally, I am motivated by the challenge of building a program that is both accu
 
 ## Installation
 
-To use FBAR, you will need to have Python 3 installed on your computer. You can then download the `project.py` file and run it in your command line. Please pay attention to the file called `requirements.txt`, which includes mandatory dependencies to be also installed.
+To use FBAR, you will need to have Python 3 installed on your computer. You can then download the `fbar.py` file and run it in your command line. Please pay attention to the file called `Pipfile`, which includes mandatory dependencies to be also installed. It is recommended to install all dependencies with `pipenv`
 
 ```
-pip install -r requirements.txt
+$ pipenv shell # if you have not initialized the virtual env yet
+$ pipenv install
 ```
 
 ## Usage
@@ -52,7 +53,7 @@ If the total value of your foreign financial accounts in US dollars exceeds $10,
 ### FBAR may be needed
 
 ```
-lorac@laptop:~/code/fbar$ python3 project.py
+lorac@laptop:~/code/fbar$ python app.py
 -----------------------------
 FBAR Calculator
 -----------------------------
@@ -90,7 +91,7 @@ Please go to https://bsaefiling.fincen.treas.gov/NoRegFBARFiler.html and type al
 ### FBAR may NOT be needed
 
 ```
-lorac@laptop:~/code/fbar$ python3 project.py
+lorac@laptop:~/code/fbar$ python fbar.py
 -----------------------------
 FBAR Calculator
 -----------------------------
