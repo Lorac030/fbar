@@ -53,7 +53,7 @@ If the total value of your foreign financial accounts in US dollars exceeds $10,
 ### FBAR may be needed
 
 ```
-lorac@laptop:~/code/fbar$ python app.py
+lorac@laptop:~/code/fbar$ python fbar.py
 -----------------------------
 FBAR Calculator
 -----------------------------
