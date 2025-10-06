@@ -36,7 +36,7 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management and
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
 - [Task](https://taskfile.dev/installation/) - Task runner (optional but recommended)
 
-**Option 2: Docker (No Python installation required)**
+**Option 2: Docker (No Python/Tasks/uv installation required)**
 - [Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/getting-started/installation)
 
 ### Quick Setup
@@ -48,6 +48,8 @@ git clone git@github.com:Lorac030/fbar.git
 cd fbar
 
 # Install dependencies
+task install
+# OR:
 uv sync
 
 # Run the application
@@ -63,9 +65,13 @@ git clone git@github.com:Lorac030/fbar.git
 cd fbar
 
 # Build the Docker image
+task docker:build
+# OR:
 docker build -t fbar-calculator .
 
 # Run the application interactively
+task docker:run
+# OR:
 docker run -it fbar-calculator
 
 # Or with podman:
@@ -93,37 +99,13 @@ The FBAR calculator runs interactively and will prompt you for:
 3. Sums the total USD equivalent
 4. Determines if FBAR filing is required (threshold: $10,000 USD)
 
-### Available Commands
-
-**Native:**
-```bash
-# Regular mode (requires internet for exchange rates)
-task run
-uv run python fbar.py
-
-# Run tests
-task test
-uv run pytest -v
-```
-
-**Docker:**
-```bash
-# Regular mode (requires internet for exchange rates)
-docker run -it fbar-calculator
-
-# Run tests
-docker run fbar-calculator uv run pytest -v
-
-# Run Task commands inside container
-docker run -it fbar-calculator task run
-```
-
 ## Usage Example
 
-### FBAR may be needed
+### Filing FBAR may be needed
 
 ```
 $ task run
+# OR: task docker:run
 # OR: uv run python fbar.py
 -----------------------------
 FBAR Calculator
@@ -227,6 +209,8 @@ task install       # Install dependencies
 task run           # Run the main application
 task test          # Run all tests
 task clean         # Remove cache files and virtual environment
+task docker:build  # Build the Docker image
+task docker:run    # Run the Docker container
 ```
 
 ### Project Structure
@@ -238,9 +222,9 @@ fbar/
 ├── README.md            # This file
 ├── pyproject.toml       # Project configuration and dependencies
 ├── taskfile.yaml        # Task automation definitions
-├── uv.lock             # Dependency lock file
-├── cspell.config.yaml  # Spell checker configuration
-└── LICENSE             # MIT License
+├── uv.lock              # Dependency lock file
+├── cspell.config.yaml   # Spell checker configuration
+└── LICENSE              # MIT License
 ```
 
 ### Testing
