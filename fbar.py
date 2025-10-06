@@ -5,6 +5,7 @@ import requests
 import tabulate
 import sys
 import re
+import datetime
 
 
 # Get exchange rate from Treasury website API
@@ -79,7 +80,9 @@ def main():
     print()
 
     # gets year from user
-    year = input("Tax Return Year (like 2021): ") or "2021"
+    current_year = datetime.datetime.now().year
+    default_year = str(current_year - 1)
+    year = input(f"Tax Return Year (like {default_year}): ") or default_year
     # only accepts four-digits year
     validate_input(year,r"^\d\d\d\d$")
     # gets name of the country from user
