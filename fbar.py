@@ -66,9 +66,36 @@ def get_exchange_rate(country_name: str, currency_name: str, year: str) -> float
             
         return float(data[0]['exchange_rate'])
         
-    except (requests.RequestException, KeyError, ValueError, IndexError) as e:
+    except requests.HTTPError as e:
+        if e.response.status_code == 503:
+            raise FBARError(
+                f"\nTreasury API is temporarily unavailable (Service Unavailable). "
+                f"This is a temporary issue with the IRS/Treasury system. Please try again later."
+            ) from e
+        else:
+            raise FBARError(
+                f"\nTreasury API returned error {e.response.status_code}. "
+                f"The Treasury system may be experiencing issues. Please try again later."
+            ) from e
+    except requests.ConnectionError as e:
         raise FBARError(
-            f"\nFailed to retrieve exchange rate data. Please check your input values and try again."
+            f"\nUnable to connect to Treasury API. Please check your internet connection "
+            f"and try again. If the problem persists, the Treasury system may be down."
+        ) from e
+    except requests.Timeout as e:
+        raise FBARError(
+            f"\nTreasury API request timed out. The Treasury system may be slow or overloaded. "
+            f"Please try again in a few minutes."
+        ) from e
+    except requests.RequestException as e:
+        raise FBARError(
+            f"\nNetwork error while accessing Treasury API: {str(e)}. "
+            f"Please check your internet connection and try again."
+        ) from e
+    except (KeyError, ValueError, IndexError) as e:
+        raise FBARError(
+            f"\nReceived unexpected data format from Treasury API. "
+            f"The API may have changed or returned invalid data. Please try again later."
         ) from e
 
 
@@ -139,7 +166,7 @@ def get_user_input() -> Tuple[str, str, str, str]:
     current_year = datetime.datetime.now().year
     default_year = str(current_year - 1)
     
-    year = input(f"Tax Return Year (like {default_year}): ") or default_year
+    year = input(f"Tax Return Year (like {default_year}): ").strip() or default_year
     validate_input(year, r"^\d{4}$", "Year must be 4 digits")
     
     country_name = input("Country of where your assets are (like Brazil): ") or "Brazil"
