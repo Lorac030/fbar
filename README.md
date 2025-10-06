@@ -73,17 +73,6 @@ podman build -t fbar-calculator .
 podman run -it fbar-calculator
 ```
 
-### Demo Mode (No Internet Required)
-For testing or demonstration purposes, you can run the application with mock exchange rates:
-
-```bash
-# Using Task
-task demo
-
-# Or directly
-uv run python fbar.py --demo
-```
-
 ## Usage
 
 The FBAR calculator runs interactively and will prompt you for:
@@ -112,10 +101,6 @@ The FBAR calculator runs interactively and will prompt you for:
 task run
 uv run python fbar.py
 
-# Demo mode (uses mock exchange rates, no internet required) 
-task demo
-uv run python fbar.py --demo
-
 # Run tests
 task test
 uv run pytest -v
@@ -126,15 +111,11 @@ uv run pytest -v
 # Regular mode (requires internet for exchange rates)
 docker run -it fbar-calculator
 
-# Demo mode (uses mock exchange rates, no internet required)
-docker run -it fbar-calculator uv run python fbar.py --demo
-
 # Run tests
 docker run fbar-calculator uv run pytest -v
 
 # Run Task commands inside container
 docker run -it fbar-calculator task run
-docker run -it fbar-calculator task demo
 ```
 
 ## Usage Example
@@ -244,7 +225,6 @@ The Financial Crimes Enforcement Network (FinCEN) is the government agency respo
 task help          # Show all available tasks
 task install       # Install dependencies  
 task run           # Run the main application
-task demo          # Run in demo mode (no internet required)
 task test          # Run all tests
 task clean         # Remove cache files and virtual environment
 ```
@@ -264,8 +244,6 @@ fbar/
 ```
 
 ### Testing
-
-Tests are designed to run without network dependencies using demo mode:
 
 ```bash
 # Run all tests
