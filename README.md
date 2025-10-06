@@ -25,6 +25,8 @@ In addition to the educational benefits of writing a program to calculate FBAR, 
 
 Finally, I am motivated by the challenge of building a program that is both accurate and user-friendly. The process of designing and coding a program involves a lot of trial and error, and requires attention to detail and problem-solving skills. By working on this project, I am not only gaining experience in programming, but also in project management and communication, as I need to clearly define the program's requirements, design the user interface, and ensure that the program is easy to use and understand.
 
+2025 Edit: Thanks to @lovato for improving the code, adding more tests, Docker support, and Task automation.
+
 ## Installation
 
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management and [Task](https://taskfile.dev/) for task automation.
