@@ -1,7 +1,7 @@
 [project]
 name = "fbar"
 version = "0.1.0"
-description = "Add your description here"
+description = "Foreign Bank and Financial Accounts Report (FBAR) Calculator - helps US residents determine if they need to file FBAR forms based on foreign account balances and official Treasury exchange rates"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

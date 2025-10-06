@@ -3,6 +3,17 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
+  - bsaefiling
   - FBAR
+  - fincen
+  - floatfmt
+  - Itau
+  - Lovato
+  - pycache
+  - pyproject
+  - pytest
+  - tablefmt
+  - taskfile
+  - venv
 ignoreWords: []
 import: []

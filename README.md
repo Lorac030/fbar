@@ -27,33 +27,82 @@ Finally, I am motivated by the challenge of building a program that is both accu
 
 ## Installation
 
-To use FBAR, you will need to have Python 3 installed on your computer. You can then download the `fbar.py` file and run it in your command line. Please pay attention to the file called `Pipfile`, which includes mandatory dependencies to be also installed. It is recommended to install all dependencies with `pipenv`
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management and [Task](https://taskfile.dev/) for task automation.
 
+### Prerequisites
+- Python 3.13+ 
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
+- [Task](https://taskfile.dev/installation/) - Task runner (optional but recommended)
+
+### Quick Setup
+```bash
+# Clone the repository
+git clone <repository-url>
+cd fbar
+
+# Install dependencies
+uv sync
+
+# Run the application
+task run
+# OR run directly:
+uv run python fbar.py
 ```
-$ pipenv shell # if you have not initialized the virtual env yet
-$ pipenv install
+
+### Demo Mode (No Internet Required)
+For testing or demonstration purposes, you can run the application with mock exchange rates:
+
+```bash
+# Using Task
+task demo
+
+# Or directly
+uv run python fbar.py --demo
 ```
 
 ## Usage
 
-FBAR runs without parameters, but will ask initially:
-- Year for the tax return (i.e the year you are filing your returns for)
-- Country name
-- Current currency name used on that country
-- Current currency symbol
+The FBAR calculator runs interactively and will prompt you for:
 
-After providing this initial information, the system will prompt you to enter the name of each bank and the respective balance. You need to enter one bank name and balance at a time, and press enter after each input. The balance should be entered as a number without decimals, just the rounded value to the nearest integer value.
+1. **Tax Return Year** - The year you're filing returns for (defaults to previous year)
+2. **Country** - Where your foreign accounts are located
+3. **Currency** - The local currency name and symbol
+4. **Bank Accounts** - Names and highest balances for each account
 
-Once you have entered all bank names and balances, the system will calculate the sum of all balances, convert the sum to US dollars using the dollar exchange rate for December 31st of the specified year, and validate it against FBAR rules.
+### Input Guidelines
+- **Balances**: Enter whole numbers (no decimals) representing the highest balance during the year
+- **Multiple Banks**: Enter one bank at a time, press Enter after each entry
+- **Completion**: Leave bank name blank when finished entering all accounts
 
-If the total value of your foreign financial accounts in US dollars exceeds $10,000, the system will indicate that you need to file a FBAR form. Otherwise, the system will indicate that you do not need to file a FBAR form.
+### How It Works
+1. Fetches official Treasury exchange rates for December 31st of the specified year
+2. Converts all foreign currency balances to USD
+3. Sums the total USD equivalent
+4. Determines if FBAR filing is required (threshold: $10,000 USD)
+
+### Available Commands
+
+```bash
+# Regular mode (requires internet for exchange rates)
+task run
+uv run python fbar.py
+
+# Demo mode (uses mock exchange rates, no internet required) 
+task demo
+uv run python fbar.py --demo
+
+# Run tests
+task test
+uv run pytest -v
+```
 
 ## Usage Example
 
 ### FBAR may be needed
 
 ```
-lorac@laptop:~/code/fbar$ python fbar.py
+$ task run
+# OR: uv run python fbar.py
 -----------------------------
 FBAR Calculator
 -----------------------------
@@ -71,7 +120,7 @@ Enter bank name (leave blank to finish): Banco do Brasil
 - Enter highest balance on 2022 in R$ for Banco do Brasil: 50000
 Enter bank name (leave blank to finish):
 
-Dolar to Real Treasury reference for 2022 is R$5.286
+Dollar to Real Treasury reference for 2022 is R$5.286
 
 +--------+-----------------+------------------+-------------------+
 |   Year | Bank Name       |   Currency in R$ |   Currency in US$ |
@@ -91,7 +140,8 @@ Please go to https://bsaefiling.fincen.treas.gov/NoRegFBARFiler.html and type al
 ### FBAR may NOT be needed
 
 ```
-lorac@laptop:~/code/fbar$ python fbar.py
+$ task run
+# OR: uv run python fbar.py
 -----------------------------
 FBAR Calculator
 -----------------------------
@@ -109,7 +159,7 @@ Enter bank name (leave blank to finish): Banco do Brasil
 - Enter highest balance on 2022 in R$ for Banco do Brasil: 1000
 Enter bank name (leave blank to finish):
 
-Dolar to Real Treasury reference for 2022 is R$5.286
+Dollar to Real Treasury reference for 2022 is R$5.286
 
 +--------+-----------------+------------------+-------------------+
 |   Year | Bank Name       |   Currency in R$ |   Currency in US$ |
@@ -144,6 +194,45 @@ The Internal Revenue Service (IRS) provides detailed information about FBAR repo
 ### The FinCEN website
 
 The Financial Crimes Enforcement Network (FinCEN) is the government agency responsible for collecting and analyzing information about financial transactions in order to combat money laundering and other financial crimes. FinCEN provides information about FBAR requirements and other financial reporting requirements on their website at https://www.fincen.gov/report-foreign-bank-and-financial-accounts.
+
+## Development
+
+### Available Tasks
+
+```bash
+task help          # Show all available tasks
+task install       # Install dependencies  
+task run           # Run the main application
+task demo          # Run in demo mode (no internet required)
+task test          # Run all tests
+task clean         # Remove cache files and virtual environment
+```
+
+### Project Structure
+
+```
+fbar/
+├── fbar.py              # Main application
+├── test_fbar.py         # Test suite
+├── README.md            # This file
+├── pyproject.toml       # Project configuration and dependencies
+├── taskfile.yaml        # Task automation definitions
+├── uv.lock             # Dependency lock file
+├── cspell.config.yaml  # Spell checker configuration
+└── LICENSE             # MIT License
+```
+
+### Testing
+
+Tests are designed to run without network dependencies using demo mode:
+
+```bash
+# Run all tests
+task test
+
+# Run specific test
+uv run pytest test_fbar.py::test_get_exchange_rate -v
+```
 
 ## License
 

@@ -6,6 +6,11 @@ tasks:
     cmds:
       - uv run python fbar.py
 
+  demo:
+    desc: Run the application in demo mode (no internet required)
+    cmds:
+      - uv run python fbar.py --demo
+
   test:
     desc: Run all tests with pytest
     cmds:
@@ -32,7 +37,12 @@ tasks:
       - uv lock
 
   clean:
-    desc: Remove cached files, __pycache__, and uv’s environment
+    desc: Remove cached files, __pycache__, and uv's environment
     cmds:
       - find . -type d -name "__pycache__" -exec rm -rf {} +
       - rm -rf .venv
+
+  help:
+    desc: Show available tasks
+    cmds:
+      - task --list-all
