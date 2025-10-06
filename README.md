@@ -30,14 +30,16 @@ Finally, I am motivated by the challenge of building a program that is both accu
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management and [Task](https://taskfile.dev/) for task automation.
 
 ### Prerequisites
+
 - Python 3.13+ 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
 - [Task](https://taskfile.dev/installation/) - Task runner (optional but recommended)
 
 ### Quick Setup
+
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone git@github.com:Lorac030/fbar.git
 cd fbar
 
 # Install dependencies

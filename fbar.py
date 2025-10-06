@@ -126,7 +126,7 @@ def main():
     # converts foreign balance into US dollar
     total_balance_in_USD = calculate_total_balance_in_USD(total_foreign_balance, usd_rate)
     # prints summary of user input without values
-    print(f"\nDolar to {currency_name} Treasury reference for {year} is {currency_symbol}{usd_rate}")
+    print(f"\nDollar to {currency_name} Treasury reference for {year} is {currency_symbol}{usd_rate}")
     print()
     # bank data needs to have more than one entry to...
     if len(bank_data) > 0:
