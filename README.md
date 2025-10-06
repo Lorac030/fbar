@@ -31,12 +31,17 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management and
 
 ### Prerequisites
 
+**Option 1: Native Installation**
 - Python 3.13+ 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) - Python package manager
 - [Task](https://taskfile.dev/installation/) - Task runner (optional but recommended)
 
+**Option 2: Docker (No Python installation required)**
+- [Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/getting-started/installation)
+
 ### Quick Setup
 
+**Native Installation:**
 ```bash
 # Clone the repository
 git clone git@github.com:Lorac030/fbar.git
@@ -49,6 +54,23 @@ uv sync
 task run
 # OR run directly:
 uv run python fbar.py
+```
+
+**Docker Installation (No Python required):**
+```bash
+# Clone the repository
+git clone git@github.com:Lorac030/fbar.git
+cd fbar
+
+# Build the Docker image
+docker build -t fbar-calculator .
+
+# Run the application interactively
+docker run -it fbar-calculator
+
+# Or with podman:
+podman build -t fbar-calculator .
+podman run -it fbar-calculator
 ```
 
 ### Demo Mode (No Internet Required)
@@ -84,6 +106,7 @@ The FBAR calculator runs interactively and will prompt you for:
 
 ### Available Commands
 
+**Native:**
 ```bash
 # Regular mode (requires internet for exchange rates)
 task run
@@ -96,6 +119,22 @@ uv run python fbar.py --demo
 # Run tests
 task test
 uv run pytest -v
+```
+
+**Docker:**
+```bash
+# Regular mode (requires internet for exchange rates)
+docker run -it fbar-calculator
+
+# Demo mode (uses mock exchange rates, no internet required)
+docker run -it fbar-calculator uv run python fbar.py --demo
+
+# Run tests
+docker run fbar-calculator uv run pytest -v
+
+# Run Task commands inside container
+docker run -it fbar-calculator task run
+docker run -it fbar-calculator task demo
 ```
 
 ## Usage Example
