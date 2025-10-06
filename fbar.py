@@ -23,7 +23,7 @@ def get_exchange_rate(country_name, currency_name, year):
         # from response, gets the json, extracts first element of data, then extracts exchange_rate
         _usd_rate = float(response.json().get('data')[0].get('exchange_rate'))
     except IndexError:
-        print("\nUnfortunatelly this call to Treasury system returned no data. Tipically what happens is that this combination of Country and Currency is not supported for the year you requested.")
+        print("\nUnfortunatelly this call to Treasury system returned no data. Typically what happens is that this combination of Country and Currency is not supported for the year you requested.")
         sys.exit(1)
     except Exception as e:
         # prints a message and exits when anything goes wrong with trying to use the API
