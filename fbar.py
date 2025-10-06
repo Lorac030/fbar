@@ -238,7 +238,7 @@ def main() -> None:
     exchange rate retrieval, bank data gathering, and results display.
     """
     print("-----------------------------")
-    print("FBAR Calculator")
+    print("💰 FBAR Calculator")
     print("-----------------------------")
     print()
     

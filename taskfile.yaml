@@ -6,11 +6,6 @@ tasks:
     cmds:
       - uv run python fbar.py
 
-  demo:
-    desc: Run the application in demo mode (no internet required)
-    cmds:
-      - uv run python fbar.py --demo
-
   test:
     desc: Run all tests with pytest
     cmds:
