@@ -1,145 +1,293 @@
-# project.py
-# Carolina Lovato
+"""
+FBAR Calculator - Foreign Bank Account Report compliance tool.
+
+This module calculates whether US taxpayers need to file FBAR forms based on 
+foreign bank account balances and official Treasury exchange rates.
+
+Author: Carolina Lovato
+"""
+
+import datetime
+import re
+import sys
+from typing import List, Tuple
 
 import requests
 import tabulate
-import sys
-import re
 
 
-# Get exchange rate from Treasury website API
-def get_exchange_rate(country_name, currency_name, year):
+# Constants
+FBAR_THRESHOLD = 10000.0
+API_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange"
+
+
+class FBARError(Exception):
+    """Custom exception for FBAR-related errors."""
+    pass
+
+
+def get_exchange_rate(country_name: str, currency_name: str, year: str) -> float:
+    """Retrieve official Treasury exchange rate for foreign currency to USD.
+    
+    Fetches the December 31st exchange rate from the US Treasury fiscal service API
+    for the specified country, currency, and year combination.
+    
+    Args:
+        country_name: Name of the country (e.g., 'Brazil')
+        currency_name: Name of the currency (e.g., 'Real') 
+        year: Four-digit year as string (e.g., '2021')
+        
+    Returns:
+        Exchange rate as float (foreign currency units per 1 USD)
+        
+    Raises:
+        FBARError: If API call fails, returns no data, or country/currency combination 
+                  is not supported for the requested year
+    """
     try:
-        # API address
-        url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange"
-        # aditional parameters for the API
+        # Build API request parameters
         params = {
             "format": "json",
             "fields": "exchange_rate,record_date",
             "filter": f"country_currency_desc:in:(USA-Dollar,{country_name}-{currency_name}),record_date:eq:{year}-12-31"
         }
-        # uses the requests library to get something from the API
-        response = requests.get(url, params=params)
-        # from response, gets the json, extracts first element of data, then extracts exchange_rate
-        _usd_rate = float(response.json().get('data')[0].get('exchange_rate'))
-    except IndexError:
-        print("\nUnfortunatelly this call to Treasury system returned no data. Tipically what happens is that this combination of Country and Currency is not supported for the year you requested.")
-        sys.exit(1)
-    except Exception as e:
-        # prints a message and exits when anything goes wrong with trying to use the API
-        print("\nSomething went wrong with your request, please check input values and try again")
-        sys.exit(1)
-    return _usd_rate
+        
+        # Make API request
+        response = requests.get(API_URL, params=params)
+        response.raise_for_status()
+        
+        # Parse response data
+        data = response.json().get('data', [])
+        if not data:
+            raise FBARError(
+                f"\nNo exchange rate data found for {country_name}-{currency_name} in {year}. "
+                "This combination may not be supported for the requested year."
+            )
+            
+        return float(data[0]['exchange_rate'])
+        
+    except requests.HTTPError as e:
+        if e.response.status_code == 503:
+            raise FBARError(
+                f"\nTreasury API is temporarily unavailable (Service Unavailable). "
+                f"This is a temporary issue with the IRS/Treasury system. Please try again later."
+            ) from e
+        else:
+            raise FBARError(
+                f"\nTreasury API returned error {e.response.status_code}. "
+                f"The Treasury system may be experiencing issues. Please try again later."
+            ) from e
+    except requests.ConnectionError as e:
+        raise FBARError(
+            f"\nUnable to connect to Treasury API. Please check your internet connection "
+            f"and try again. If the problem persists, the Treasury system may be down."
+        ) from e
+    except requests.Timeout as e:
+        raise FBARError(
+            f"\nTreasury API request timed out. The Treasury system may be slow or overloaded. "
+            f"Please try again in a few minutes."
+        ) from e
+    except requests.RequestException as e:
+        raise FBARError(
+            f"\nNetwork error while accessing Treasury API: {str(e)}. "
+            f"Please check your internet connection and try again."
+        ) from e
+    except (KeyError, ValueError, IndexError) as e:
+        raise FBARError(
+            f"\nReceived unexpected data format from Treasury API. "
+            f"The API may have changed or returned invalid data. Please try again later."
+        ) from e
 
 
-# calculates total balance in US dollars
-def calculate_total_balance_in_USD(total_balance, exchange_rate):
-    # exchange rate cannot be zero
-    if exchange_rate == 0:
-        return None
-    # total balance must be bigger than zero
-    if total_balance > 0:
-        # makes the calculation
-        return total_balance / exchange_rate
-    else:
-        return 0
+def calculate_total_balance_in_usd(total_balance: float, exchange_rate: float) -> float:
+    """Convert foreign currency balance to US dollars using official exchange rate.
+    
+    Args:
+        total_balance: Balance in foreign currency units
+        exchange_rate: Official Treasury exchange rate (foreign currency units per 1 USD)
+        
+    Returns:
+        Balance converted to USD (minimum value of 0.0)
+        
+    Raises:
+        FBARError: If exchange rate is zero or negative
+    """
+    if exchange_rate <= 0:
+        raise FBARError("Exchange rate must be positive")
+        
+    return max(0, total_balance / exchange_rate)
 
 
-# sums all values in foreign currency
-# bank_data = []
-#  0: year
-#  1: bank name
-#  2: foreign balance
-#  3: USD balance
-def get_total_foreign_balance(bank_data):
+def get_total_foreign_balance(bank_data: List[Tuple[str, str, float, float]]) -> float:
+    """Calculate total foreign currency balance across all bank accounts.
+    
+    Safely sums the foreign currency balances (third element) from all bank 
+    account tuples, handling invalid data gracefully.
+    
+    Args:
+        bank_data: List of tuples containing (year, bank_name, foreign_balance, usd_balance)
+        
+    Returns:
+        Total foreign currency balance, or 0.0 if data is invalid/empty
+    """
     try:
-        result = 0
-        # for each item inside the list...
-        for item in bank_data:
-            # gets index 2 of the list and adds it to result
-            result += item[2]
-        return result
-    except:
-        # if anything goes wrong returns 0
-        return 0
+        return sum(item[2] for item in bank_data)
+    except (IndexError, TypeError, ValueError):
+        return 0.0
 
 
-# generic function to validate inputs based on patterns
-def validate_input(value, pattern):
+def validate_input(value: str, pattern: str, error_message: str) -> None:
+    """Validate user input against a regular expression pattern.
+    
+    Args:
+        value: Input string to validate
+        pattern: Regular expression pattern for validation
+        error_message: Human-readable error message for validation failures
+        
+    Raises:
+        FBARError: If input doesn't match the specified pattern
+    """
     if not re.match(pattern, value):
-        print("Value not acceptable")
-        sys.exit(1)
+        raise FBARError(f"Invalid input: {error_message}")
 
 
-# calculates fbar from user input
-def main():
-    print("-----------------------------")
-    print("FBAR Calculator")
-    print("-----------------------------")
-    print()
-
-    # gets year from user
-    year = input("Tax Return Year (like 2021): ") or "2021"
-    # only accepts four-digits year
-    validate_input(year,r"^\d\d\d\d$")
-    # gets name of the country from user
+def get_user_input() -> Tuple[str, str, str, str]:
+    """Collect and validate all required user input for FBAR calculation.
+    
+    Prompts user for tax year, country, currency name, and currency symbol with
+    sensible defaults and input validation.
+    
+    Returns:
+        Tuple of (year, country_name, currency_name, currency_symbol)
+        
+    Raises:
+        FBARError: If any input validation fails
+    """
+    current_year = datetime.datetime.now().year
+    default_year = str(current_year - 1)
+    
+    year = input(f"Tax Return Year (like {default_year}): ").strip() or default_year
+    validate_input(year, r"^\d{4}$", "Year must be 4 digits")
+    
     country_name = input("Country of where your assets are (like Brazil): ") or "Brazil"
-    # at least one letter or digit
-    validate_input(country_name,r".+")
-    # gets name of currency from user
+    validate_input(country_name, r".+", "Country name cannot be empty")
+    
     currency_name = input(f"Currency Name for {country_name} (like Real): ") or "Real"
-    # at least one letter or digit
-    validate_input(currency_name,r".+")
-    # gets symbol of currency from user
+    validate_input(currency_name, r".+", "Currency name cannot be empty")
+    
     currency_symbol = input("Currency Symbol for that country (like R$): ") or "R$"
-    # validates if symbol has 1 letter at least
-    validate_input(currency_symbol,r".+")
+    validate_input(currency_symbol, r".+", "Currency symbol cannot be empty")
+    
+    return year, country_name, currency_name, currency_symbol
 
-    # gets dollar value for requested parameters (Dec 31st for the year)
-    usd_rate = get_exchange_rate(country_name, currency_name, year)
 
-    # ask for bank names and balances
+def get_bank_data(year: str, currency_symbol: str, exchange_rate: float) -> List[Tuple[str, str, float, float]]:
+    """Interactively collect bank account data from user input.
+    
+    Prompts user to enter bank names and their highest balances for the tax year,
+    automatically converting to USD using the provided exchange rate.
+    
+    Args:
+        year: Four-digit tax year as string
+        currency_symbol: Display symbol for the foreign currency (e.g., 'R$')
+        exchange_rate: Official Treasury exchange rate for USD conversion
+        
+    Returns:
+        List of tuples containing (year, bank_name, foreign_balance, usd_balance)
+        
+    Raises:
+        FBARError: If bank name or balance validation fails
+    """
     bank_data = []
     print()
-    # loop to request all bank names and balances
+    
     while True:
-        # asks user for a bank name
         bank_name = input("Enter bank name (leave blank to finish): ")
         if not bank_name:
             break
-        # bank name cannot be empty
-        validate_input(bank_name,r".+")
-        # asks user for the balance 
-        balance = input(f"- Enter highest balance on {year} in {currency_symbol} for {bank_name}: ")
-        # balance can only be number(s)
-        validate_input(balance,r"^[0-9]+$")
-        # converts balance into float
-        balance = float(balance)
-        # puts every input inside an "item", then inside a list
-        bank_data.append([year, bank_name, balance, calculate_total_balance_in_USD(balance, usd_rate)])
+            
+        validate_input(bank_name, r".+", "Bank name cannot be empty")
+        
+        balance_input = input(f"- Enter highest balance on {year} in {currency_symbol} for {bank_name}: ")
+        validate_input(balance_input, r"^[0-9]+$", "Balance must be a positive number")
+        
+        balance = float(balance_input)
+        usd_balance = calculate_total_balance_in_usd(balance, exchange_rate)
+        
+        bank_data.append((year, bank_name, balance, usd_balance))
+    
+    return bank_data
 
-    # extracts total foreing balance from bank data
+
+def display_results(
+    bank_data: List[Tuple[str, str, float, float]], 
+    year: str, 
+    currency_name: str, 
+    currency_symbol: str, 
+    exchange_rate: float
+) -> None:
+    """Display formatted results table and FBAR filing requirements.
+    
+    Shows exchange rate, bank account details in a formatted table, total balances,
+    and determines whether FBAR filing is required based on the $10,000 threshold.
+    
+    Args:
+        bank_data: List of tuples containing (year, bank_name, foreign_balance, usd_balance)
+        year: Four-digit tax year as string
+        currency_name: Full name of the foreign currency (e.g., 'Real')
+        currency_symbol: Display symbol for the foreign currency (e.g., 'R$')
+        exchange_rate: Official Treasury exchange rate used for conversion
+    """
     total_foreign_balance = get_total_foreign_balance(bank_data)
-    # converts foreign balance into US dollar
-    total_balance_in_USD = calculate_total_balance_in_USD(total_foreign_balance, usd_rate)
-    # prints summary of user input without values
-    print(f"\nDolar to {currency_name} Treasury reference for {year} is {currency_symbol}{usd_rate}")
+    total_usd_balance = calculate_total_balance_in_usd(total_foreign_balance, exchange_rate)
+    
+    print(f"\nDollar to {currency_name} Treasury reference for {year} is {currency_symbol}{exchange_rate}")
     print()
-    # bank data needs to have more than one entry to...
-    if len(bank_data) > 0:
-        # define the table header and...
-        header = ['Year', 'Bank Name', 'Currency in ' + currency_symbol, 'Currency in US$']
-        # prints the table
-        print(tabulate.tabulate(bank_data, header, tablefmt="grid", floatfmt=".2f"))
+    
+    if bank_data:
+        headers = ['Year', 'Bank Name', f'Currency in {currency_symbol}', 'Currency in US$']
+        print(tabulate.tabulate(bank_data, headers, tablefmt="grid", floatfmt=".2f"))
         print()
-    print(f"Total balance of {currency_symbol}{total_foreign_balance:.2f} on {year} was equivalent to US${total_balance_in_USD:.2f}")
-    if total_balance_in_USD >= 10000:
-        # prints a message (fbar needed) since total balance is >= 10000
-        print(f"As it exceeds US$10,000 you MAY NEED to file an FBAR form on April of {int(year)+1}.")
+    
+    print(f"Total balance of {currency_symbol}{total_foreign_balance:.2f} on {year} was equivalent to US${total_usd_balance:.2f}")
+    
+    if total_usd_balance >= FBAR_THRESHOLD:
+        print(f"As it exceeds US${FBAR_THRESHOLD:,.0f} you MAY NEED to file an FBAR form on April of {int(year)+1}.")
         print("Please go to https://bsaefiling.fincen.treas.gov/NoRegFBARFiler.html and type all asset values there for online FBAR filing.")
     else:
-        # prints a message (fbar NOT needed) since total balance is < 10000
-        print(f"As it does not exceed US$10,000 you may not need to file a FBAR form on April of {int(year)+1}.")
+        print(f"As it does not exceed US${FBAR_THRESHOLD:,.0f} you may not need to file a FBAR form on April of {int(year)+1}.")
+
+
+def main() -> None:
+    """Main entry point for FBAR calculator application.
+    
+    Orchestrates the complete FBAR calculation workflow: user input collection,
+    exchange rate retrieval, bank data gathering, and results display.
+    """
+    print("-----------------------------")
+    print("💰 FBAR Calculator")
+    print("-----------------------------")
+    print()
+    
+    try:
+        # Collect user input
+        year, country_name, currency_name, currency_symbol = get_user_input()
+        
+        # Fetch official Treasury exchange rate
+        exchange_rate = get_exchange_rate(country_name, currency_name, year)
+        
+        # Gather bank account data
+        bank_data = get_bank_data(year, currency_symbol, exchange_rate)
+        
+        # Calculate and display results
+        display_results(bank_data, year, currency_name, currency_symbol, exchange_rate)
+        
+    except FBARError as e:
+        print(str(e))
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys.exit(0)
 
 
 if __name__ == "__main__":

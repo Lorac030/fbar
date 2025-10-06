@@ -1,0 +1,53 @@
+version: "3"
+
+tasks:
+  run:
+    desc: Run the main application
+    cmds:
+      - uv run python fbar.py
+
+  test:
+    desc: Run all tests with pytest
+    cmds:
+      - uv run pytest -v
+
+  install:
+    desc: Sync dependencies (like npm ci)
+    cmds:
+      - uv sync
+
+  add:
+    desc: "Add a new dependency (usage: task add -- requests)"
+    cmds:
+      - uv add {{.CLI_ARGS}}
+
+  add-dev:
+    desc: "Add a new dev dependency (usage: task add-dev -- pytest)"
+    cmds:
+      - uv add --dev {{.CLI_ARGS}}
+
+  lock:
+    desc: Regenerate lock file
+    cmds:
+      - uv lock
+
+  clean:
+    desc: Remove cached files, __pycache__, and uv's environment
+    cmds:
+      - find . -type d -name "__pycache__" -exec rm -rf {} +
+      - rm -rf .venv
+
+  help:
+    desc: Show available tasks
+    cmds:
+      - task --list-all
+
+  docker:build:
+    desc: Build the Docker image
+    cmds:
+      - docker build -t fbar-calculator .
+
+  docker:run:
+    desc: Run the Docker container
+    cmds:
+      - docker run -it --rm fbar-calculator

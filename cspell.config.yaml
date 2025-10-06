@@ -1,0 +1,20 @@
+version: "0.2"
+ignorePaths: []
+dictionaryDefinitions: []
+dictionaries: []
+words:
+  - bsaefiling
+  - FBAR
+  - fincen
+  - floatfmt
+  - Itau
+  - Lorac
+  - Lovato
+  - pycache
+  - pyproject
+  - pytest
+  - tablefmt
+  - taskfile
+  - venv
+ignoreWords: []
+import: []
